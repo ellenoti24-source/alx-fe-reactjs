@@ -1,18 +1,16 @@
-import React from 'react';
-import Header from './Header';
-import UserProfile from './UserProfile';
-import MainContent from './MainContent';
-import Footer from './Footer';
+import UserContext from './UserContext';
+import ProfilePage from './ProfilePage';
 
 function App() {
+  const userData = { 
+    name: "Jane Doe", 
+    email: "jane.doe@example.com" 
+  };
+
   return (
-    <div>
-      <MainContent />
-      <Header />
-      <UserProfile name="Rufus Christian" age={31} bio="I love playing football and coding." />
-      <Counter />
-      <Footer />
-    </div>
+    <UserContext.Provider value={userData}>
+      <ProfilePage />
+    </UserContext.Provider>
   );
 }
 
