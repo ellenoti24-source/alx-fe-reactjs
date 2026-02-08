@@ -1,24 +1,25 @@
 import { useState } from "react";
-import { fetchUserData } from "../services/githubService";
+import axios from "axios";
 
 const Search = () => {
   const [username, setUsername] = useState("");
-  const [user, setUser] = useState(null);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-
-    if (!username.trim()) return;
+    if (!username) return;
 
     setLoading(true);
     setError("");
-    setUser(null);
+    setUsers([]);
 
     try {
-      const data = await fetchUserData(username);
-      setUser(data);
+      const res = await axios.get(
+        https://api.github.com/search/users?q=${username}
+      );
+      setUsers(res.data.items); // ✅ Must be .items
     } catch (err) {
       setError("Looks like we cant find the user");
     } finally {
@@ -28,41 +29,35 @@ const Search = () => {
 
   return (
     <div className="search-container">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSearch}>
         <input
           type="text"
-          placeholder="Enter GitHub username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter GitHub username"
         />
-
         <button type="submit">Search</button>
       </form>
 
-      {/* Loading */}
       {loading && <p>Loading...</p>}
-
-      {/* Error */}
       {error && <p>{error}</p>}
 
-      {/* Result */}
-      {user && (
-        <div className="user-card">
-          <img
-            src={user.avatar_url}
-            alt={user.login}
-            width="120"
-          />
-
-          <h3>{user.name || user.login}</h3>
-
-          <a
-            href={user.html_url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Profile
-          </a>
+      {/* Map over users array */}
+      {users.length > 0 && (
+        <div>
+          {users.map((user) => (
+            <div key={user.id}>
+              <img
+                src={user.avatar_url}
+                alt={user.login}
+                width="80"
+              />
+              <p>{user.login}</p>
+              <a href={user.html_url} target="_blank" rel="noreferrer">
+                View Profile
+              </a>
+            </div>
+          ))}
         </div>
       )}
     </div>
