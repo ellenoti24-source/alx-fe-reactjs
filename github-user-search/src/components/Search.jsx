@@ -1,8 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
+import { searchUsers, fetchUserData } from "../services/githubService";
 
 const Search = () => {
   const [username, setUsername] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [minRepos, setMinRepos] = useState("");
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,10 +19,22 @@ const Search = () => {
     setUsers([]);
 
     try {
-      const res = await axios.get(
-        https://api.github.com/search/users?q=${username}
+      // Step 1: search users with filters
+      const data = await searchUsers(username, locationFilter, minRepos);
+
+      // Step 2: fetch full profile for each user to get location
+      const detailedUsers = await Promise.all(
+        data.items.map(async (user) => {
+          const details = await fetchUserData(user.login);
+          return {
+            ...user,
+            location: details.location  "N/A",
+            public_repos: details.public_repos  0,
+          };
+        })
       );
-      setUsers(res.data.items); // ✅ Must be .items
+
+      setUsers(detailedUsers);
     } catch (err) {
       setError("Looks like we cant find the user");
     } finally {
@@ -28,13 +43,25 @@ const Search = () => {
   };
 
   return (
-    <div className="search-container">
-      <form onSubmit={handleSearch}>
+    <div className="max-w-4xl mx-auto p-4">
+      <form onSubmit={handleSearch} className="mb-6">
         <input
           type="text"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter GitHub username"
+        />
+        <input
+          type="text"
+          placeholder="Location"
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Minimum Repositories"
+          value={minRepos}
+          onChange={(e) => setMinRepos(e.target.value)}
         />
         <button type="submit">Search</button>
       </form>
@@ -42,24 +69,19 @@ const Search = () => {
       {loading && <p>Loading...</p>}
       {error && <p>{error}</p>}
 
-      {/* Map over users array */}
-      {users.length > 0 && (
-        <div>
-          {users.map((user) => (
-            <div key={user.id}>
-              <img
-                src={user.avatar_url}
-                alt={user.login}
-                width="80"
-              />
-              <p>{user.login}</p>
-              <a href={user.html_url} target="_blank" rel="noreferrer">
-                View Profile
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
+      <div>
+        {users.map((user) => (
+          <div key={user.id} style={{ border: "1px solid #ccc", margin: "8px", padding: "8px" }}>
+            <img src={user.avatar_url} alt={user.login} width="80" />
+            <p>Username: {user.login}</p>
+            <p>Location: {user.location}</p>
+            <p>Repositories: {user.public_repos}</p>
+            <a href={user.html_url} target="_blank" rel="noreferrer">
+              View Profile
+            </a>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
