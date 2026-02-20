@@ -1,9 +1,9 @@
-import UserProfile from "./components/UserProfile";
+import HomePage from "./components/HomePage";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-200">
-      <UserProfile />
+    <div className="bg-gray-100 min-h-screen">
+      <HomePage />
     </div>
   );
 }
